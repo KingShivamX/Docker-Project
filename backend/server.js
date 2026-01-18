@@ -1,5 +1,11 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -96,25 +102,34 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-/**
- * Root endpoint
- */
-app.get('/', (req, res) => {
-    res.send("<h1 style='color: green;'>Welcome to Smart Student Hub API</h1>");
+// ============================================
+// Serve Frontend Static Files (for merged Docker image)
+// ============================================
+
+// Serve static files from 'public' folder (built frontend)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// For any route not handled by API, serve the frontend
+// This enables React Router (client-side routing) to work
+app.get('*', (req, res) => {
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    
+    // Check if public folder exists (for merged container)
+    if (require('fs').existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        // Fallback for development (when running backend alone)
+        res.json({
+            message: 'Welcome to Smart Student Hub API',
+            docs: '/api/info',
+            health: '/api/health'
+        });
+    }
 });
 
 // ============================================
 // Error Handling
 // ============================================
-
-// 404 Handler
-app.use((req, res) => {
-    res.status(404).json({
-        error: 'Not Found',
-        message: `Route ${req.method} ${req.path} not found`,
-        availableEndpoints: '/api/info'
-    });
-});
 
 // Global Error Handler
 app.use((err, req, res, next) => {

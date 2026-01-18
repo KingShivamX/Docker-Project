@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Server, Wifi, WifiOff, RefreshCw, Clock, Activity } from 'lucide-react';
 
-const BACKEND_URL = 'http://localhost:5000';
+// Empty string for merged container (same origin), or full URL for separate containers
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
 const BackendStatus = () => {
     const [status, setStatus] = useState({

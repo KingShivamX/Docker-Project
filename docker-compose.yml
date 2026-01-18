@@ -1,0 +1,41 @@
+services:
+  # Backend Service
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "${BACKEND_PORT}:5000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - student-hub-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    
+  # Frontend Service  
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    networks:
+      - student-hub-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+# Network Definition
+networks:
+  student-hub-network:
+    driver: bridge
